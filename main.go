@@ -4,6 +4,8 @@ import (
   "fmt"
   "bufio"
   "os"
+  "os/exec"
+  s "strings"
 )
 
 type ShellCommand struct {
@@ -20,22 +22,29 @@ func main() {
   fmt.Println("Welcome to GoShell")
 
   // Create an instance of fileLocation
-  locations := new(FileLocation)
+  // locations := new(FileLocation)
 
-  // Creating a channel to communicate with the active shell session
-  messages := make(chan string)
-  go Reader(messages)
+  // Creating a channel to send commands to command dispatcher
+  commands := make(chan ShellCommand)
+  // messages := make(chan string)
 
-  // Blocking until we get a message
-  <-messages
+  // Create a go routine that handles dispatching commands
+  go commandDispatcher(commands)
+
+  Reader(commands)
 }
 
-func Reader(messages chan string) {
+func Reader(commands chan ShellCommand) {
   reader := bufio.NewReader(os.Stdin)
   for {
     fmt.Print(">> ")
     text, _ := reader.ReadString('\n')
-    fmt.Println(text)
+    splitText := s.Split(s.TrimSpace(text), " ")
+    command := splitText[0]
+    args := splitText[1:]
+    currentCommand := ShellCommand{command, args}
+    commands <- currentCommand
+    fmt.Println(args)
   }
 }
 
@@ -44,6 +53,20 @@ func cd(loc *FileLocation, newLocation string) {
   loc.pathHistory = append(loc.pathHistory, newLocation)
 }
 
-// func (c *ShellCommand) executeCommand() {
+func (c *ShellCommand) executeCommand() {
+  command := exec.Command(c.command)
+  commandOut, err := command.Output()
+  if err != nil {
+    panic(err)
+  }
+  fmt.Println(string(commandOut))
+}
 
-// }
+func commandDispatcher(commands chan ShellCommand) {
+  for {
+    select {
+    case command := <-commands:
+      command.executeCommand()
+    }
+  }
+}
