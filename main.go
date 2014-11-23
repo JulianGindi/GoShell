@@ -11,8 +11,16 @@ type ShellCommand struct {
   arguments []string
 }
 
+type FileLocation struct {
+  currentPath string
+  pathHistory []string
+}
+
 func main() {
   fmt.Println("Welcome to GoShell")
+
+  // Create an instance of fileLocation
+  locations := new(FileLocation)
 
   // Creating a channel to communicate with the active shell session
   messages := make(chan string)
@@ -29,6 +37,11 @@ func Reader(messages chan string) {
     text, _ := reader.ReadString('\n')
     fmt.Println(text)
   }
+}
+
+func cd(loc *FileLocation, newLocation string) {
+  loc.currentPath = newLocation
+  loc.pathHistory = append(loc.pathHistory, newLocation)
 }
 
 // func (c *ShellCommand) executeCommand() {
