@@ -17,3 +17,7 @@ The following are some of the planned features:
 - Customizable shell prompt
 - Environment variables 
 - A simple shell-scripting language (inspired by Python)
+
+## Custom Unix Programs
+
+I will be adapting some classic Unix programs to Go as an exercise. This will also allow me to add concurrency to programs that might not already have it. The user will have the option to use the original version, or the "Go optimized" version. 
