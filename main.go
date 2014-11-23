@@ -6,6 +6,11 @@ import (
   "os"
 )
 
+type ShellCommand struct {
+  command string
+  arguments []string
+}
+
 func main() {
   fmt.Println("Welcome to GoShell")
 
@@ -25,3 +30,7 @@ func Reader(messages chan string) {
     fmt.Println(text)
   }
 }
+
+// func (c *ShellCommand) executeCommand() {
+
+// }
