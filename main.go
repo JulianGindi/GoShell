@@ -21,20 +21,17 @@ type FileLocation struct {
 func main() {
   fmt.Println("Welcome to GoShell")
 
-  // Create an instance of fileLocation
-  // locations := new(FileLocation)
-
-  // Creating a channel to send commands to command dispatcher
+  // Creating a channel to send commands to the command dispatcher
   commands := make(chan ShellCommand)
-  // messages := make(chan string)
+  messages := make(chan string)
 
   // Create a go routine that handles dispatching commands
-  go commandDispatcher(commands)
+  go commandDispatcher(commands, messages)
 
-  Reader(commands)
+  Reader(commands, messages)
 }
 
-func Reader(commands chan ShellCommand) {
+func Reader(commands chan ShellCommand, messages chan string) {
   reader := bufio.NewReader(os.Stdin)
   for {
     fmt.Print(">> ")
@@ -44,7 +41,7 @@ func Reader(commands chan ShellCommand) {
     args := splitText[1:]
     currentCommand := ShellCommand{command, args}
     commands <- currentCommand
-    fmt.Println(args)
+    <-messages
   }
 }
 
@@ -53,20 +50,22 @@ func cd(loc *FileLocation, newLocation string) {
   loc.pathHistory = append(loc.pathHistory, newLocation)
 }
 
-func (c *ShellCommand) executeCommand() {
+func (c *ShellCommand) executeCommand(messages chan string) {
   command := exec.Command(c.command)
   commandOut, err := command.Output()
   if err != nil {
-    panic(err)
+    fmt.Println("Invalid Command")
+    return
   }
   fmt.Println(string(commandOut))
+  messages <- "done"
 }
 
-func commandDispatcher(commands chan ShellCommand) {
+func commandDispatcher(commands chan ShellCommand, messages chan string) {
   for {
     select {
     case command := <-commands:
-      command.executeCommand()
+      command.executeCommand(messages)
     }
   }
 }
